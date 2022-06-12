@@ -1,3 +1,0 @@
-## Berachain 🐻⛓
-
-Definitely not real
