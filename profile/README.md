@@ -1,7 +1,11 @@
-<p align="center"><a href="https://berachain.com" target="_blank"><img alt="Berachain is definitely not real" title="Berachain is definitely not real" src="https://raw.githubusercontent.com/berachain/.github/main/banner.png" width="100%">
-</a>
-</p>
+# Berachain Foundation
 
-## About Berachain
+The Berachain Foundation maintains repositories relating to the Berachain distributed ledger as well as generic tooling for Ethereum Virtual Machine and Cosmos chains.
 
-Berachain is a new EVM Equivalent blockchain built on-top of a proof-of-liquidity consensus protocol
+Berachain is an EVM-compatible layer one blockchain, built using the Cosmos SDK, and secured by the novel Proof-of-Liquidity Consensus Protocol. Proof-of-Liquidity (POL), as an extension of Delegated Proof-of-Stake (dPOS), is facilitated by users staking assets to secure the chain, in return for rewards. However, unlike dPOS, Proof-of Liquidity enables users' staked assets to be put to productive use by providing liquidity as a common good. 
+
+## Berachain Development
+
+* [berachain-local](https://github.com/berachain/berachain-local) - Spin up a local node with full tooling and debug capatibilies. 
+
+
