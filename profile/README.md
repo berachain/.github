@@ -6,5 +6,5 @@ Berachain is an EVM-compatible layer one blockchain, built using the Cosmos SDK,
 
 ## Berachain Development
 
-* [berachain-local](https://github.com/berachain/berachain-local) - Spin up a local node with full tooling and debug capatibilies. 
+* [berachain-local](https://github.com/berachain/berachain-local) - Spin up a local node with full tooling and debug capabilities. 
 
