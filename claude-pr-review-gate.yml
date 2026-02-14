@@ -1,0 +1,84 @@
+name: Claude PR Review Gate
+
+# This workflow runs on PR events and checks if Claude-authored PRs have human approval
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+jobs:
+  check-claude-approval:
+    runs-on: ubuntu-latest
+    
+    # Minimal permissions - only needs to read PR data
+    permissions:
+      pull-requests: read
+      contents: read
+    
+    steps:
+      - name: Check if PR is from Claude
+        id: check-author
+        run: |
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          echo "PR Author: $PR_AUTHOR"
+          
+          # Official Claude bot account patterns
+          if [[ "$PR_AUTHOR" == "claude[bot]" ]] || \
+             [[ "$PR_AUTHOR" == "claude-code[bot]" ]]; then
+            echo "is_claude=true" >> $GITHUB_OUTPUT
+            echo "🤖 Detected Claude PR - human approval required"
+          else
+            echo "is_claude=false" >> $GITHUB_OUTPUT
+            echo "👤 Human PR - bypassing additional review gate"
+          fi
+
+      - name: Require human approval for Claude PRs
+        if: steps.check-author.outputs.is_claude == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Fetch all reviews for this PR
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+            
+            // Filter for human approvals only
+            const humanApprovals = reviews.filter(review => {
+              const isApproved = review.state === 'APPROVED';
+              const isBot = review.user.login.includes('[bot]');
+              const isUser = review.user.type === 'User';
+              return isApproved && !isBot && isUser;
+            });
+            
+            console.log(`Total reviews: ${reviews.length}`);
+            console.log(`Human approvals: ${humanApprovals.length}`);
+            
+            if (humanApprovals.length === 0) {
+              const message = [
+                '❌ This Claude-generated PR requires at least one human approval before merging.',
+                '',
+                '**Why?** AI-generated code must be reviewed by a human to ensure:',
+                '- Correctness and alignment with requirements',
+                '- Security and best practices',
+                '- No unintended side effects',
+                '',
+                '**Action required:** Ask a teammate to review and approve this PR.'
+              ].join('\n');
+              
+              core.setFailed(message);
+            } else {
+              const approvers = humanApprovals.map(r => `@${r.user.login}`).join(', ');
+              console.log(`✅ Approved by: ${approvers}`);
+              console.log('✅ Human approval requirement satisfied');
+            }
+
+      - name: Auto-pass for human PRs
+        if: steps.check-author.outputs.is_claude == 'false'
+        run: |
+          echo "✅ This is a human-authored PR"
+          echo "✅ No additional approval gate required"
+          echo "✅ Existing repository branch protection rules apply"
